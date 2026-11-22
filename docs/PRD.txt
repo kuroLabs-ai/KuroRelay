@@ -1,0 +1,2159 @@
+# KuroRelay
+## Product Requirements Document (PRD)
+## Technical Design Document (TDD)
+## Architecture, Workflows & Complete Development Guide
+
+**Product:** KuroRelay  
+**Organization:** Kuro-Labs  
+**Category:** API Development & Testing Environment  
+**Platform:** Windows Desktop  
+**Architecture:** React + TypeScript + Python + PyWebView  
+**Development Approach:** Modular Monolith  
+**Data Strategy:** Local-first  
+**Document Status:** Initial Product & Technical Baseline  
+**Version:** 0.1.0
+
+---
+
+# PART 01 — PRODUCT VISION
+
+## 1.1 Product Overview
+
+KuroRelay is a desktop API development, testing, debugging, and automation environment designed to provide developers with a unified workspace for working with APIs throughout their development lifecycle.
+
+It is not intended to be just an HTTP request sender.
+
+KuroRelay combines API exploration, request construction, execution, response inspection, testing, automation, documentation, and AI-assisted development into one extensible environment.
+
+The application should support developers from the initial stage of exploring an API to building automated testing workflows and validating API behavior.
+
+## 1.2 Product Philosophy
+
+**Build. Send. Inspect. Verify.**
+
+- Build: Construct and configure API requests.
+- Send: Execute requests reliably.
+- Inspect: Understand responses and diagnose problems.
+- Verify: Validate behavior through tests and assertions.
+
+The product should prioritize accuracy, reliability, transparency, and developer productivity.
+
+## 1.3 Core Principles
+
+1. Local-first: User projects and data are stored locally by default.
+2. Developer-focused: Professional tools without unnecessary complexity.
+3. Extensible: New protocols, engines, and integrations can be added.
+4. Modular: Each major subsystem has a clear responsibility.
+5. Transparent: Users can understand what the application is executing.
+6. Secure: Secrets, scripts, and external connections must be handled safely.
+7. AI optional: Core functionality must work without AI.
+8. Non-destructive: User data and request configurations should not be silently overwritten.
+9. Performance-conscious: Long-running operations must never freeze the UI.
+10. User-controlled: Network requests and potentially destructive actions require explicit authorization.
+
+## 1.4 Target Audience
+
+### Backend Developers
+- Build and test REST APIs.
+- Debug endpoints.
+- Validate authentication.
+- Inspect responses.
+
+### Frontend Developers
+- Explore backend APIs.
+- Test endpoints before integrating them.
+- Manage environments.
+- Generate example requests.
+
+### QA Engineers
+- Create test suites.
+- Validate response structures.
+- Run automated tests.
+- Generate test reports.
+
+### API Engineers
+- Import OpenAPI specifications.
+- Manage API collections.
+- Document API behavior.
+- Validate API contracts.
+
+### Independent Developers
+- Organize multiple API projects.
+- Test local and remote services.
+- Maintain reusable requests and workflows.
+
+---
+
+# PART 02 — PRODUCT SCOPE
+
+## 2.1 Core Product Modules
+
+KuroRelay is divided into the following main modules.
+
+### A. Workspace Management
+Responsible for organizing the user's development environment.
+
+Features:
+- Create Workspace.
+- Open Workspace.
+- Rename Workspace.
+- Archive Workspace.
+- Workspace settings.
+- Project-specific configurations.
+- Workspace data management.
+
+### B. Request Builder
+The central workspace for creating and executing HTTP requests.
+
+Supported methods:
+- GET
+- POST
+- PUT
+- PATCH
+- DELETE
+- HEAD
+- OPTIONS
+- Custom methods where appropriate.
+
+Request configuration:
+- URL.
+- Query Parameters.
+- Headers.
+- Body.
+- Authentication.
+- Cookies.
+- Request settings.
+- Redirect behavior.
+- Timeout configuration.
+- Proxy configuration.
+- TLS verification settings.
+
+Body formats:
+- JSON.
+- Raw Text.
+- Form URL Encoded.
+- Multipart Form Data.
+- Binary.
+- XML and other raw formats.
+
+Authentication:
+- No Auth.
+- Basic Auth.
+- Bearer Token.
+- API Key.
+- OAuth 2.0.
+- Digest Auth where supported.
+
+### C. Response Inspector
+
+Displays the complete result of an executed request.
+
+Response information:
+- HTTP Status Code.
+- Status Text.
+- Response Body.
+- Response Headers.
+- Cookies.
+- Response Time.
+- Response Size.
+- Redirect Information.
+- Connection Errors.
+- TLS Errors.
+
+Response viewers:
+- Pretty JSON.
+- Raw.
+- Text.
+- HTML.
+- XML.
+- Binary download.
+- Headers.
+- Cookies.
+
+Additional capabilities:
+- JSON Tree Viewer.
+- Syntax Highlighting.
+- Search in Response.
+- Copy Response.
+- Save Response.
+- Download Response.
+- Compare Responses.
+
+### D. Collections
+
+Collections organize reusable requests.
+
+Features:
+- Create Collection.
+- Create Folder.
+- Add Request.
+- Duplicate Request.
+- Move Request.
+- Rename Request.
+- Delete Request.
+- Import and Export Collections.
+- Collection-level variables.
+- Collection-level authentication.
+- Collection execution.
+
+### E. Environment Manager
+
+Environments allow requests to use different configurations without manually changing URLs or credentials.
+
+Example:
+
+Development:
+- BASE_URL = http://localhost:8000
+- API_VERSION = v1
+
+Production:
+- BASE_URL = https://api.example.com
+- API_VERSION = v1
+
+Variable syntax:
+
+{{BASE_URL}}/{{API_VERSION}}/users
+
+Features:
+- Create Environment.
+- Edit Environment.
+- Duplicate Environment.
+- Select Active Environment.
+- Global Variables.
+- Environment Variables.
+- Collection Variables.
+- Secret Variables.
+- Variable Resolution.
+- Variable Scope Management.
+
+Secrets must be stored separately from ordinary workspace data.
+
+### F. Request History
+
+Records previously executed requests.
+
+Features:
+- Request History.
+- Response History.
+- Search History.
+- Filter by Method.
+- Filter by Status.
+- Filter by Date.
+- Restore Previous Request.
+- Delete History.
+- Clear History.
+
+History retention should be configurable.
+
+Sensitive request and response information must not be retained without respecting user privacy settings.
+
+### G. Testing Center
+
+A dedicated environment for validating API behavior.
+
+Test types:
+- Status Code Assertions.
+- Response Time Assertions.
+- JSON Property Assertions.
+- Header Assertions.
+- Cookie Assertions.
+- JSON Schema Validation.
+- Custom Assertions.
+
+Example:
+
+- Status code equals 200.
+- Response contains user.
+- User ID is not null.
+- Response time is below a configured threshold.
+
+Testing capabilities:
+- Test Cases.
+- Test Suites.
+- Test Groups.
+- Test Execution.
+- Test Reports.
+- Pass/Fail Results.
+- Failure Details.
+- Test History.
+
+### H. Request Chaining
+
+Allows one request to use information returned by another request.
+
+Example:
+
+1. Login Request.
+2. Extract Access Token.
+3. Store Token in Environment.
+4. Execute Profile Request.
+5. Validate Profile Response.
+
+Chaining must support explicit dependencies and failure handling.
+
+### I. Workflow Studio
+
+A visual environment for creating API execution workflows.
+
+Potential nodes:
+- HTTP Request.
+- Variable.
+- Condition.
+- Delay.
+- Extract Data.
+- Assertion.
+- Transform Data.
+- Loop with limits.
+- Retry.
+- Stop.
+- Output.
+
+Example:
+
+Login → Extract Token → Get Profile → Validate Response → Report Result.
+
+The workflow editor must validate connections and node configurations before execution.
+
+### J. API Explorer
+
+Allows developers to explore existing API specifications.
+
+Features:
+- OpenAPI Import.
+- Swagger Import.
+- Endpoint Discovery.
+- HTTP Method Identification.
+- Parameters.
+- Request Schemas.
+- Response Schemas.
+- Authentication Information.
+- Generate Requests from Endpoints.
+- Documentation Viewer.
+
+### K. Mock Server
+
+Allows users to create simulated API endpoints for development and testing.
+
+Features:
+- Mock Endpoints.
+- Configurable Responses.
+- Status Codes.
+- Response Headers.
+- Response Body.
+- Request Matching.
+- Local Mock Server.
+- Port Configuration.
+- Start and Stop Controls.
+
+Mock servers must bind only to permitted interfaces, with explicit configuration before exposing them to a network.
+
+### L. Performance Testing
+
+Advanced API performance tools.
+
+Features:
+- Sequential Requests.
+- Concurrent Requests.
+- Configurable Virtual Users.
+- Request Duration.
+- Throughput.
+- Error Rate.
+- Latency Percentiles.
+- Test Duration.
+- Performance Reports.
+
+Load testing must have safe concurrency and duration limits by default.
+
+### M. AI Assistant
+
+An optional intelligent assistant integrated throughout the application.
+
+Supported provider architecture:
+- Gemini.
+- OpenAI GPT.
+- Anthropic Claude.
+- Local Model Providers such as Ollama.
+
+AI capabilities:
+- Natural Language to Request.
+- Explain API Responses.
+- Analyze HTTP Errors.
+- Generate Test Cases.
+- Generate Assertions.
+- Suggest Request Improvements.
+- Explain OpenAPI Specifications.
+- Generate API Documentation.
+- Assist with Workflow Creation.
+- Help organize API projects.
+
+AI execution rules:
+- AI must not invent API endpoints or claim that an API has been tested when it has not.
+- Generated requests must be visible before execution.
+- Destructive actions require user confirmation.
+- Credentials must not be transmitted to providers without explicit permission.
+- Provider failures must not affect core application functionality.
+- Users must be able to disable AI completely.
+
+### N. Plugin Integration
+
+Future integration with Kuro Hub.
+
+Potential plugin categories:
+- Authentication Providers.
+- Protocol Extensions.
+- Response Viewers.
+- Request Transformers.
+- Testing Extensions.
+- Workflow Nodes.
+- AI Providers.
+
+Plugins must use a controlled extension API and permission model.
+
+---
+
+# PART 03 — NON-FUNCTIONAL REQUIREMENTS
+
+## 3.1 Performance
+
+- Application startup should be optimized.
+- Normal UI interactions should feel responsive.
+- Network requests must run asynchronously.
+- Large responses must not block the UI.
+- Large response bodies should support controlled rendering or streaming.
+- History queries should be paginated.
+- Database operations must not block the interface.
+- Long-running tasks must provide progress where meaningful.
+
+Initial performance targets:
+
+- UI interaction target: under 100 ms for ordinary local interactions.
+- Initial application startup target: under 5 seconds on the supported reference machine.
+- Request execution overhead should remain low relative to actual network latency.
+- The application should handle configurable response-size limits.
+
+These are engineering targets, not guaranteed measurements. They must be benchmarked on actual supported hardware.
+
+## 3.2 Reliability
+
+- No silent request failures.
+- Clear error messages.
+- Controlled cancellation.
+- Database transaction safety.
+- Recovery from interrupted operations.
+- Stable application shutdown.
+- No unhandled exceptions escaping the application boundary.
+
+## 3.3 Security
+
+- Never disable TLS verification silently.
+- Never expose credentials in logs.
+- Secure secret storage.
+- Safe redirect handling.
+- SSRF protections.
+- Local-network access controls where appropriate.
+- Script isolation.
+- Plugin permission controls.
+- Safe file import and export.
+- No arbitrary execution through the frontend bridge.
+
+## 3.4 Compatibility
+
+Initial platform:
+- Windows 10.
+- Windows 11.
+
+The exact minimum Windows build and runtime prerequisites must be confirmed during packaging validation.
+
+Other platforms are future considerations.
+
+## 3.5 Offline Operation
+
+Core functionality must operate without an internet connection, provided the target API is locally accessible or otherwise reachable.
+
+AI, external integrations, and online documentation may require connectivity.
+
+---
+
+# PART 04 — USER EXPERIENCE & INTERFACE
+
+## 4.1 Design Direction
+
+Design philosophy:
+
+**Classic Modern. Dark First. Developer Focused.**
+
+The interface should be:
+- Professional.
+- Clean.
+- Compact but readable.
+- Comfortable for long sessions.
+- Consistent across workspaces.
+- Customizable without becoming visually noisy.
+
+## 4.2 Color System
+
+Initial proposed palette:
+
+| Token | Color |
+|---|---|
+| Main Background | #17191D |
+| Sidebar | #1D2025 |
+| Panel | #23272E |
+| Elevated Surface | #292E36 |
+| Primary Text | #E5E7EB |
+| Secondary Text | #929AA6 |
+| Accent | #5B9BFF |
+| Success | #55B98A |
+| Error | #E47777 |
+| Warning | #D9AA62 |
+
+Accent color must be customizable.
+
+Dark theme is the initial default. Light theme can be introduced later.
+
+## 4.3 Main Application Layout
+
+The application uses four major UI areas.
+
+### 1. Activity Bar
+The narrow navigation rail.
+
+Contains:
+- Collections.
+- API Explorer.
+- Environments.
+- Workflows.
+- Testing.
+- History.
+- Mock Servers.
+- Plugins.
+
+### 2. Navigation Sidebar
+
+Contextual navigation depending on the selected module.
+
+Examples:
+- Collections tree.
+- Workspace list.
+- Environment list.
+- API endpoint tree.
+- Test Suite list.
+
+### 3. Main Workspace
+
+The central working area.
+
+Supports:
+- Request Builder.
+- Response Inspector.
+- API Documentation.
+- Workflow Editor.
+- Test Editor.
+- Multiple Request Tabs.
+
+### 4. Utility Panel
+
+Optional contextual panel.
+
+Contains:
+- AI Assistant.
+- Variables.
+- Request Information.
+- Documentation.
+- Execution Details.
+
+The panel should be collapsible and resizable.
+
+## 4.4 Request Workspace
+
+The Request Workspace is the most important screen.
+
+Top section:
+- Method Selector.
+- URL Input.
+- Send Button.
+- Save Button.
+- Active Environment.
+
+Request configuration tabs:
+- Params.
+- Headers.
+- Body.
+- Auth.
+- Scripts.
+- Settings.
+
+Response section:
+- Status.
+- Duration.
+- Size.
+- Body.
+- Headers.
+- Cookies.
+- Tests.
+
+The user should be able to resize the request and response sections.
+
+## 4.5 Keyboard Shortcuts
+
+Initial shortcut proposal:
+
+| Shortcut | Action |
+|---|---|
+| Ctrl + Enter | Send Request |
+| Ctrl + S | Save Current Request |
+| Ctrl + K | Open Command Palette / AI |
+| Ctrl + P | Search Requests |
+| Ctrl + Shift + N | New Request |
+| Ctrl + W | Close Active Tab |
+| Ctrl + H | Open History |
+
+Shortcuts must be configurable in a later release.
+
+---
+
+# PART 05 — USER WORKFLOW
+
+This section describes how an actual user works with KuroRelay.
+
+## 5.1 First Launch
+
+1. User opens KuroRelay.
+2. Application initializes its local database.
+3. Application loads user preferences.
+4. User sees the Welcome Screen.
+5. User creates a Workspace or opens an existing one.
+6. User enters the Main Workspace.
+
+The application should not require an account for core local functionality.
+
+## 5.2 Creating a Request
+
+1. User opens Request Builder.
+2. User selects HTTP method.
+3. User enters a URL.
+4. User adds query parameters.
+5. User configures headers.
+6. User chooses authentication.
+7. User configures the request body if necessary.
+8. User selects the active environment.
+9. User reviews the request.
+10. User clicks Send.
+
+## 5.3 Inspecting a Response
+
+1. Application executes the request.
+2. User sees execution status.
+3. Response Inspector displays the result.
+4. User examines status, headers, body, and timing.
+5. User searches or copies response data.
+6. User saves the request if needed.
+
+## 5.4 Organizing Work
+
+1. User creates a Collection.
+2. User creates folders.
+3. User saves requests.
+4. User creates environments.
+5. User assigns variables.
+6. User switches environments as needed.
+
+## 5.5 Testing an API
+
+1. User opens Testing Center.
+2. User creates a Test Suite.
+3. User selects a request.
+4. User defines assertions.
+5. User executes the test.
+6. Application evaluates results.
+7. User inspects failed assertions.
+8. User saves the test report.
+
+## 5.6 Running a Workflow
+
+1. User opens Workflow Studio.
+2. User creates a workflow.
+3. User adds request nodes.
+4. User connects nodes.
+5. User configures variables and conditions.
+6. User validates the workflow.
+7. User executes the workflow.
+8. Application reports node progress.
+9. User inspects execution results.
+
+## 5.7 Using AI
+
+1. User opens the contextual AI Assistant.
+2. User provides a task.
+3. AI receives only authorized context.
+4. AI produces a proposed action.
+5. Application validates the proposal.
+6. User reviews the action.
+7. User approves execution where required.
+8. Application performs the operation.
+9. User receives actual execution results.
+
+---
+
+# PART 06 — APPLICATION WORKFLOW
+
+This section describes internal application behavior.
+
+## 6.1 Application Startup
+
+1. Start desktop runtime.
+2. Initialize PyWebView.
+3. Initialize Python application core.
+4. Load configuration.
+5. Initialize database connection.
+6. Run database migrations.
+7. Register approved bridge commands.
+8. Start the frontend.
+9. Establish frontend/backend communication.
+10. Load the last active workspace.
+11. Display the Main Workspace.
+
+If initialization fails, the application must show a useful diagnostic message and avoid leaving the database in an inconsistent state.
+
+## 6.2 Request Execution Pipeline
+
+1. Frontend collects request configuration.
+2. Frontend validates basic field formats.
+3. Frontend submits a structured payload.
+4. Bridge validates the command and payload size.
+5. Python creates an execution task.
+6. Request Engine validates the request.
+7. Environment Engine resolves variables.
+8. Authentication Engine applies configured credentials.
+9. Security Policy checks the destination and request settings.
+10. HTTP Engine executes the request.
+11. Response Engine processes the result.
+12. History Engine stores permitted history information.
+13. Python returns a structured result.
+14. Frontend updates Response Inspector.
+15. User can inspect the final result.
+
+The execution layer must preserve the actual request and response information. It must not replace network errors with fabricated HTTP responses.
+
+## 6.3 Task Management
+
+Long-running work must use managed task execution.
+
+Each task should have:
+- Task ID.
+- Operation Type.
+- Status.
+- Creation Time.
+- Start Time.
+- Completion Time.
+- Progress, when available.
+- Cancellation State.
+- Result or Error.
+
+Possible statuses:
+- Pending.
+- Running.
+- Completed.
+- Failed.
+- Cancelled.
+
+Cancellation is cooperative. A cancellation request must be propagated to the underlying operation wherever supported.
+
+## 6.4 Error Handling
+
+Errors should be categorized:
+
+- Validation Error.
+- Bridge Error.
+- Network Error.
+- DNS Error.
+- Connection Error.
+- Timeout.
+- TLS Error.
+- Authentication Error.
+- HTTP Response Error.
+- Database Error.
+- Script Error.
+- Plugin Error.
+- AI Provider Error.
+
+Every error should have:
+- Error Code.
+- Human-readable Message.
+- Technical Details where safe.
+- Recovery Suggestion where meaningful.
+
+HTTP 4xx and 5xx responses are valid HTTP responses, not transport failures.
+
+---
+
+# PART 07 — TECHNICAL ARCHITECTURE
+
+## 7.1 Architectural Style
+
+**Modular Monolith**
+
+KuroRelay should begin as a single desktop application with clearly separated internal modules.
+
+Microservices are not necessary for the initial product.
+
+Advantages:
+- Easier development.
+- Easier debugging.
+- Lower operational complexity.
+- Local-first execution.
+- Clear internal boundaries.
+- Future extraction of independent services if justified.
+
+## 7.2 High-Level Architecture
+
+```text
+┌───────────────────────────────────────┐
+│            KuroRelay UI               │
+│                                       │
+│       React + TypeScript + Vite       │
+│                                       │
+│  Components / Features / State        │
+│  Editors / Workspaces / Visual Tools  │
+└──────────────────┬────────────────────┘
+                   │
+                   ▼
+┌───────────────────────────────────────┐
+│          Bridge Contract              │
+│                                       │
+│ Commands / Events / Task IDs          │
+│ Validation / Serialization            │
+└──────────────────┬────────────────────┘
+                   │
+                   ▼
+┌───────────────────────────────────────┐
+│          PyWebView Runtime            │
+│                                       │
+│       Controlled Python API           │
+└──────────────────┬────────────────────┘
+                   │
+                   ▼
+┌───────────────────────────────────────┐
+│        Python Application Core        │
+│                                       │
+│ Services / Use Cases / Task Manager   │
+└──────────────────┬────────────────────┘
+                   │
+       ┌───────────┼───────────┐
+       ▼           ▼           ▼
+┌───────────┐ ┌───────────┐ ┌───────────┐
+│ HTTP      │ │ Testing   │ │ Storage   │
+│ Engine    │ │ Engine    │ │ Engine    │
+└───────────┘ └───────────┘ └───────────┘
+       │           │           │
+       └───────────┼───────────┘
+                   ▼
+┌───────────────────────────────────────┐
+│       Shared Application Services     │
+│                                       │
+│ Environments / Security / AI / Logs   │
+│ Workflows / OpenAPI / Mock Servers    │
+└───────────────────────────────────────┘
+```
+
+## 7.3 Frontend Responsibilities
+
+React is responsible for:
+- UI rendering.
+- Navigation.
+- Application layout.
+- User interaction.
+- Local UI state.
+- Request configuration editing.
+- Response presentation.
+- Editor integrations.
+- Visual workflow construction.
+- Task progress presentation.
+- User notifications.
+- Theme management.
+
+React must not implement the actual desktop HTTP execution engine.
+
+## 7.4 Python Responsibilities
+
+Python is responsible for:
+- Application business logic.
+- Request execution.
+- Authentication processing.
+- Variable resolution.
+- Response processing.
+- Data persistence.
+- Testing execution.
+- Workflow execution.
+- OpenAPI processing.
+- Mock server management.
+- Performance test coordination.
+- AI provider adapters.
+- Security enforcement.
+- Background tasks.
+
+## 7.5 Bridge Responsibilities
+
+The bridge is the boundary between the UI and Python.
+
+It must:
+- Expose an explicit allowlist of commands.
+- Validate incoming payloads.
+- Return structured results.
+- Report errors consistently.
+- Support task execution.
+- Support progress notifications.
+- Support cancellation.
+- Avoid exposing arbitrary Python objects.
+- Avoid exposing filesystem or process execution APIs without strict controls.
+
+The bridge is not a general-purpose remote Python console.
+
+---
+
+# PART 08 — FRONTEND TECHNOLOGY STACK
+
+## 8.1 Core
+
+| Technology | Purpose |
+|---|---|
+| React | UI Framework |
+| TypeScript | Static Typing |
+| Vite | Development & Build |
+| Tailwind CSS | Styling |
+| Radix UI | Accessible UI Primitives |
+| Lucide React | Icons |
+
+## 8.2 State Management
+
+| Library | Purpose |
+|---|---|
+| Zustand | Global UI State |
+| TanStack Query | Async Data & Cache |
+| Zod | Runtime Data Validation |
+| React Hook Form | Form Management |
+
+State separation:
+- Zustand: tabs, active workspace, layout, UI preferences.
+- TanStack Query: asynchronous backend data.
+- React component state: temporary local interaction state.
+
+## 8.3 Editors
+
+| Library | Purpose |
+|---|---|
+| Monaco Editor | JSON and Script Editing |
+| CodeMirror 6 | Lightweight Editor Alternative |
+
+Choose one primary code editor for the MVP to avoid unnecessary complexity.
+
+Recommended initial choice: Monaco Editor.
+
+## 8.4 Layout & Visualization
+
+| Library | Purpose |
+|---|---|
+| react-resizable-panels | Resizable Panels |
+| React Flow | Workflow Visualization |
+| Recharts | Performance Charts |
+
+React Flow should be introduced when Workflow Studio development begins.
+
+## 8.5 Additional Frontend Tools
+
+- Vitest: Unit Testing.
+- React Testing Library: Component Testing.
+- Playwright: End-to-End Testing where compatible with the desktop runtime.
+- ESLint: Code Quality.
+- Prettier: Formatting.
+
+---
+
+# PART 09 — PYTHON TECHNOLOGY STACK
+
+## 9.1 Application Core
+
+| Library | Purpose |
+|---|---|
+| Python | Application Language |
+| PyWebView | Desktop Runtime |
+| HTTPX | HTTP Client |
+| asyncio | Async Operations |
+| Pydantic | Models and Validation |
+| SQLAlchemy | Database ORM |
+| SQLite | Local Database |
+| Alembic | Database Migrations |
+
+## 9.2 Protocols
+
+| Library | Purpose |
+|---|---|
+| websockets | WebSocket Support |
+| graphql-core | GraphQL Support |
+| httpx-sse | Server-Sent Events |
+| jsonschema | JSON Schema Validation |
+| PyYAML | YAML Parsing |
+
+Protocol support should be implemented in independent adapters rather than mixing every protocol into the HTTP engine.
+
+## 9.3 OpenAPI
+
+Recommended tools:
+- openapi-spec-validator.
+- PyYAML.
+- Pydantic.
+- jsonschema.
+
+OpenAPI processing must support specification validation and controlled import.
+
+## 9.4 Testing
+
+- pytest.
+- pytest-asyncio.
+- pytest-cov.
+- jsonpath-ng.
+- respx for HTTPX mocking.
+
+## 9.5 Security
+
+- keyring for supported operating-system credential storage.
+- cryptography for cryptographic operations where needed.
+- structlog for structured logging with redaction.
+
+Do not invent a custom encryption system when an established operating-system credential store is available.
+
+## 9.6 AI Integration
+
+Use provider adapters with a shared internal interface.
+
+Do not make the entire application depend on one provider's SDK.
+
+Possible providers:
+- Gemini.
+- OpenAI.
+- Anthropic.
+- Ollama.
+
+The AI layer should support:
+- Provider Selection.
+- Model Selection.
+- Credential Management.
+- Request Timeout.
+- Error Handling.
+- Usage Reporting where available.
+- Fallback Policies.
+- User Consent.
+
+---
+
+# PART 10 — DATABASE DESIGN
+
+## 10.1 Database Strategy
+
+Use SQLite for the local application database.
+
+Use SQLAlchemy for data access and Alembic for schema migrations.
+
+The database must have a defined migration strategy from the first release.
+
+Enable SQLite foreign keys and use appropriate transaction management.
+
+WAL mode may be evaluated for concurrent read/write workloads, but it must not be assumed safe for arbitrary network filesystems.
+
+## 10.2 Main Entities
+
+### Workspace
+- id
+- name
+- description
+- created_at
+- updated_at
+
+### Collection
+- id
+- workspace_id
+- name
+- description
+- created_at
+- updated_at
+
+### CollectionFolder
+- id
+- collection_id
+- parent_id
+- name
+- sort_order
+
+### Request
+- id
+- collection_id
+- folder_id
+- name
+- method
+- url
+- configuration_json
+- created_at
+- updated_at
+
+### Environment
+- id
+- workspace_id
+- name
+- created_at
+- updated_at
+
+### EnvironmentVariable
+- id
+- environment_id
+- key
+- value
+- is_secret
+
+Secret values must not be stored as ordinary plaintext database fields.
+
+### RequestHistory
+- id
+- workspace_id
+- request_snapshot
+- response_metadata
+- executed_at
+- duration_ms
+
+Response bodies may be stored separately or omitted according to user settings and storage limits.
+
+### TestSuite
+- id
+- workspace_id
+- name
+- description
+
+### TestCase
+- id
+- suite_id
+- request_id
+- assertions_json
+- configuration_json
+
+### Workflow
+- id
+- workspace_id
+- name
+- graph_json
+- version
+- created_at
+- updated_at
+
+### WorkflowExecution
+- id
+- workflow_id
+- status
+- started_at
+- completed_at
+- result_summary
+
+### MockServer
+- id
+- workspace_id
+- name
+- host
+- port
+- configuration_json
+
+### ApplicationSettings
+- key
+- value
+- updated_at
+
+## 10.3 Data Rules
+
+- Use UUIDs or another stable identifier strategy.
+- Store timestamps consistently in UTC.
+- Keep user-facing time conversion in the frontend.
+- Use foreign keys.
+- Add indexes for common lookup fields.
+- Use database migrations.
+- Avoid storing secrets in ordinary JSON snapshots.
+- Apply configurable retention to large history records.
+
+---
+
+# PART 11 — BRIDGE CONTRACT DESIGN
+
+## 11.1 Contract Principles
+
+Every bridge operation must have:
+- A stable command name.
+- A validated request schema.
+- A validated response schema.
+- A documented error model.
+- A clear timeout policy.
+- A clear cancellation policy where relevant.
+
+## 11.2 Example TypeScript Contract
+
+```typescript
+interface RequestPayload {
+  requestId?: string;
+  method: string;
+  url: string;
+  headers: Record<string, string>;
+  params: Record<string, string>;
+  body?: {
+    type: string;
+    content: unknown;
+  };
+  auth?: {
+    type: string;
+    configuration: Record<string, unknown>;
+  };
+  timeoutMs?: number;
+}
+
+interface RequestResult {
+  taskId: string;
+  status: "completed" | "failed" | "cancelled";
+  response?: {
+    statusCode: number;
+    headers: Record<string, string>;
+    body: unknown;
+    durationMs: number;
+    sizeBytes: number;
+  };
+  error?: {
+    code: string;
+    message: string;
+  };
+}
+
+interface KuroRelayBridge {
+  sendRequest(
+    payload: RequestPayload
+  ): Promise<RequestResult>;
+
+  cancelTask(
+    taskId: string
+  ): Promise<void>;
+
+  getHistory(): Promise<HistoryItem[]>;
+
+  saveRequest(
+    payload: SaveRequestPayload
+  ): Promise<SavedRequest>;
+}
+```
+
+This is a conceptual contract. The implementation must define actual Pydantic models and exact serialization rules.
+
+For large responses, use a bounded transfer or a result reference rather than blindly returning huge payloads through the bridge.
+
+## 11.3 Event Contract
+
+Events may include:
+- task.started
+- task.progress
+- task.completed
+- task.failed
+- task.cancelled
+- workspace.updated
+- history.updated
+
+Events should include:
+- event ID.
+- event type.
+- task ID when applicable.
+- timestamp.
+- validated payload.
+
+---
+
+# PART 12 — SECURITY ARCHITECTURE
+
+Security is a core requirement, not a later enhancement.
+
+## 12.1 Secret Management
+
+- Store secrets through Windows Credential Manager using a supported keyring backend where possible.
+- Keep secret references in ordinary application records.
+- Never log passwords, API keys, OAuth tokens, or Authorization headers.
+- Mask secrets in the UI.
+- Require explicit consent before sending secrets to AI providers.
+- Provide a way to remove stored credentials.
+
+## 12.2 SSRF & Network Access
+
+Requests can target local and private network services.
+
+KuroRelay must:
+- Validate URLs.
+- Handle redirects carefully.
+- Re-check redirect destinations.
+- Prevent accidental access to disallowed destinations when applicable.
+- Provide clear network access controls.
+- Avoid resolving user-controlled URLs in privileged contexts without validation.
+
+Local development APIs must remain usable through an explicit local-network policy.
+
+## 12.3 TLS
+
+- Verify TLS certificates by default.
+- Never silently downgrade TLS verification.
+- Allow insecure testing only through an explicit user action and visible warning.
+- Record relevant security settings with the request configuration.
+
+## 12.4 Script Execution
+
+Pre-request and post-response scripts must use an isolated JavaScript runtime.
+
+Requirements:
+- No unrestricted filesystem access.
+- No unrestricted process execution.
+- No unrestricted network access.
+- Execution timeout.
+- Memory limits where supported.
+- Controlled input and output.
+- Cancellation.
+- Clear permissions.
+
+Do not use Python eval or frontend eval to execute user scripts.
+
+## 12.5 Plugin Security
+
+- Plugins are disabled until installed or enabled.
+- Plugins declare permissions.
+- Plugins cannot automatically access secrets.
+- Plugin execution must have clear boundaries.
+- Untrusted plugins must not receive unrestricted application access.
+
+---
+
+# PART 13 — ENGINE ARCHITECTURE
+
+## 13.1 HTTP Engine
+
+Responsibilities:
+- HTTP Client Lifecycle.
+- Connection Management.
+- Request Execution.
+- Timeout Management.
+- Redirect Handling.
+- TLS Configuration.
+- Proxy Support.
+- Response Streaming.
+- Cancellation.
+
+Use HTTPX AsyncClient with controlled lifecycle management.
+
+Avoid creating an unmanaged HTTP client for every request.
+
+## 13.2 Request Engine
+
+Responsibilities:
+- Validate Request Models.
+- Resolve Variables.
+- Prepare Authentication.
+- Normalize Headers.
+- Prepare Body.
+- Apply Request Policies.
+- Delegate to HTTP Engine.
+
+## 13.3 Response Engine
+
+Responsibilities:
+- Normalize Response Metadata.
+- Handle Content Types.
+- Determine Display Representation.
+- Calculate Size and Duration.
+- Support Large Response Handling.
+- Preserve Binary Data.
+- Redact Sensitive Information when needed.
+
+## 13.4 Environment Engine
+
+Responsibilities:
+- Variable Resolution.
+- Variable Scope.
+- Secret References.
+- Environment Selection.
+- Missing Variable Detection.
+
+Define variable precedence explicitly and make it visible to users.
+
+## 13.5 Collection Engine
+
+Responsibilities:
+- Collection CRUD.
+- Folder Management.
+- Request Organization.
+- Import/Export.
+- Collection Validation.
+
+## 13.6 Testing Engine
+
+Responsibilities:
+- Assertion Evaluation.
+- Test Execution.
+- Test Reporting.
+- Failure Diagnostics.
+- Test Suite Management.
+
+The testing engine should operate on structured request results, not UI components.
+
+## 13.7 Workflow Engine
+
+Responsibilities:
+- Graph Validation.
+- Dependency Resolution.
+- Node Execution.
+- Variable Passing.
+- Conditional Branching.
+- Failure Policies.
+- Cancellation.
+- Execution Reporting.
+
+Workflow execution must be independent from React Flow.
+
+React Flow is a visualization tool, not the workflow execution engine.
+
+## 13.8 AI Engine
+
+Responsibilities:
+- Provider Adapters.
+- Prompt Context Construction.
+- Tool Selection.
+- Action Validation.
+- User Approval.
+- Execution Delegation.
+- Result Reporting.
+
+AI must call approved application services rather than bypassing the application architecture.
+
+---
+
+# PART 14 — DEVELOPMENT WORKFLOW
+
+This section defines how the engineering work should be performed.
+
+## 14.1 Development Rules
+
+1. Inspect existing code before changing it.
+2. Do not assume an implementation exists because it is documented.
+3. Every major feature must have a defined scope.
+4. Separate UI implementation from business logic.
+5. Write tests for core behavior.
+6. Do not introduce unnecessary dependencies.
+7. Do not duplicate existing functionality.
+8. Document architectural decisions.
+9. Keep commits focused.
+10. Test before merging.
+11. Never claim a feature is complete without evidence.
+
+## 14.2 Development Cycle
+
+For every feature:
+
+1. Requirement Definition.
+2. Technical Design.
+3. Data Model Design.
+4. Bridge Contract Definition.
+5. Backend Implementation.
+6. Backend Tests.
+7. Frontend Implementation.
+8. Frontend Tests.
+9. Integration Tests.
+10. Manual QA.
+11. Documentation.
+12. Code Review.
+13. Merge.
+
+## 14.3 Git Strategy
+
+Recommended branches:
+
+- main: Stable releases.
+- develop: Integration branch.
+- feature/*: Feature implementation.
+- fix/*: Bug fixes.
+- release/*: Release preparation.
+- hotfix/*: Critical production fixes.
+
+A pull request should contain:
+- Description.
+- Scope.
+- Screenshots where applicable.
+- Testing Evidence.
+- Known Limitations.
+- Related Issue.
+
+## 14.4 Definition of Done
+
+A feature is complete only when:
+- Requirements are satisfied.
+- Implementation is integrated.
+- Error cases are handled.
+- Security implications are reviewed.
+- Tests pass.
+- UI states are handled.
+- Documentation is updated.
+- No critical regression is introduced.
+
+---
+
+# PART 15 — COMPLETE PROJECT STRUCTURE
+
+Recommended initial repository structure:
+
+```text
+KuroRelay/
+│
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── App.tsx
+│   │   │   ├── routes/
+│   │   │   └── providers/
+│   │   │
+│   │   ├── components/
+│   │   │   ├── ui/
+│   │   │   ├── layout/
+│   │   │   └── feedback/
+│   │   │
+│   │   ├── features/
+│   │   │   ├── workspaces/
+│   │   │   ├── requests/
+│   │   │   ├── responses/
+│   │   │   ├── collections/
+│   │   │   ├── environments/
+│   │   │   ├── history/
+│   │   │   ├── testing/
+│   │   │   ├── workflows/
+│   │   │   ├── api-explorer/
+│   │   │   ├── mock-servers/
+│   │   │   ├── performance/
+│   │   │   └── ai/
+│   │   │
+│   │   ├── bridge/
+│   │   │   ├── client.ts
+│   │   │   ├── commands.ts
+│   │   │   ├── events.ts
+│   │   │   └── types.ts
+│   │   │
+│   │   ├── stores/
+│   │   ├── hooks/
+│   │   ├── services/
+│   │   ├── schemas/
+│   │   ├── types/
+│   │   ├── styles/
+│   │   └── utils/
+│   │
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── vite.config.ts
+│
+├── backend/
+│   ├── app/
+│   │   ├── main.py
+│   │   │
+│   │   ├── core/
+│   │   │   ├── config.py
+│   │   │   ├── exceptions.py
+│   │   │   ├── logging.py
+│   │   │   └── lifecycle.py
+│   │   │
+│   │   ├── bridge/
+│   │   │   ├── api.py
+│   │   │   ├── commands/
+│   │   │   ├── schemas/
+│   │   │   └── events.py
+│   │   │
+│   │   ├── services/
+│   │   │   ├── workspace_service.py
+│   │   │   ├── request_service.py
+│   │   │   ├── history_service.py
+│   │   │   └── task_service.py
+│   │   │
+│   │   ├── engines/
+│   │   │   ├── http/
+│   │   │   ├── requests/
+│   │   │   ├── responses/
+│   │   │   ├── authentication/
+│   │   │   ├── environments/
+│   │   │   ├── collections/
+│   │   │   ├── testing/
+│   │   │   ├── workflows/
+│   │   │   ├── openapi/
+│   │   │   ├── mock_server/
+│   │   │   ├── performance/
+│   │   │   └── ai/
+│   │   │
+│   │   ├── database/
+│   │   │   ├── base.py
+│   │   │   ├── session.py
+│   │   │   ├── models/
+│   │   │   └── repositories/
+│   │   │
+│   │   ├── security/
+│   │   ├── scripts/
+│   │   └── utils/
+│   │
+│   ├── tests/
+│   │   ├── unit/
+│   │   ├── integration/
+│   │   └── security/
+│   │
+│   ├── pyproject.toml
+│   └── requirements-dev.txt
+│
+├── desktop/
+│   ├── launcher.py
+│   ├── window.py
+│   ├── lifecycle.py
+│   └── packaging/
+│
+├── tests/
+│   ├── e2e/
+│   └── fixtures/
+│
+├── docs/
+│   ├── PRD.md
+│   ├── TDD.md
+│   ├── ARCHITECTURE.md
+│   ├── USER_WORKFLOW.md
+│   ├── APP_WORKFLOW.md
+│   ├── DEV_WORKFLOW.md
+│   ├── SECURITY.md
+│   ├── DATABASE.md
+│   ├── BRIDGE_CONTRACT.md
+│   └── RELEASE.md
+│
+├── scripts/
+├── assets/
+├── .gitignore
+├── README.md
+└── LICENSE
+```
+
+This is the target architecture, not a requirement to create every directory immediately.
+
+---
+
+# PART 16 — MVP DEFINITION
+
+The MVP must demonstrate the complete basic request lifecycle.
+
+## 16.1 Included Features
+
+- Desktop Startup.
+- Main Application Layout.
+- Workspace Creation.
+- Request Builder.
+- HTTP Methods.
+- URL Handling.
+- Query Parameters.
+- Headers.
+- JSON Body.
+- Basic Authentication.
+- Bearer Authentication.
+- HTTPX Execution.
+- Response Inspector.
+- Status Code.
+- Response Headers.
+- Response Body.
+- Request Duration.
+- Request Saving.
+- Collections.
+- Basic Environments.
+- Request History.
+- SQLite Persistence.
+- Basic Error Handling.
+
+## 16.2 Excluded from MVP
+
+- Workflow Studio.
+- Mock Server.
+- Performance Testing.
+- Advanced OAuth Flows.
+- GraphQL.
+- WebSocket.
+- SSE.
+- Plugin Marketplace.
+- Advanced AI Agent.
+- Team Collaboration.
+- Cloud Synchronization.
+
+These features are planned for future phases.
+
+## 16.3 MVP Acceptance Criteria
+
+The MVP is accepted when:
+
+1. The desktop application launches successfully.
+2. A user can create a workspace.
+3. A user can create a GET request.
+4. A user can send a request to a test endpoint.
+5. Python executes the request through HTTPX.
+6. The UI displays the actual response.
+7. The UI remains responsive during execution.
+8. The user can inspect response headers and body.
+9. The user can save the request.
+10. The user can reopen the saved request.
+11. The request appears in history.
+12. Data remains available after application restart.
+13. Network errors are reported correctly.
+14. Cancellation works where supported.
+15. Automated tests cover the core execution pipeline.
+
+---
+
+# PART 17 — DEVELOPMENT ROADMAP
+
+## Phase 0 — Foundation
+
+Objectives:
+- Repository initialization.
+- Python environment.
+- React/Vite setup.
+- PyWebView integration.
+- Development launcher.
+- Bridge proof of concept.
+- Basic logging.
+- Basic database setup.
+
+Deliverable:
+A desktop application with a working React/Python connection.
+
+## Phase 1 — HTTP Core
+
+Objectives:
+- HTTP Engine.
+- Request Models.
+- Request Validation.
+- GET/POST/PUT/PATCH/DELETE.
+- Headers.
+- Query Parameters.
+- JSON Body.
+- Authentication Basics.
+- Response Processing.
+- Timeouts.
+- Cancellation.
+
+Deliverable:
+A working request execution environment.
+
+## Phase 2 — Main UI
+
+Objectives:
+- Design System.
+- Main Layout.
+- Request Builder.
+- Response Inspector.
+- Tabs.
+- Workspace Navigation.
+- Empty States.
+- Loading States.
+- Error States.
+
+Deliverable:
+A complete basic developer workspace.
+
+## Phase 3 — Persistence
+
+Objectives:
+- SQLite.
+- SQLAlchemy.
+- Alembic.
+- Workspaces.
+- Collections.
+- Requests.
+- Environments.
+- History.
+
+Deliverable:
+A persistent local API development workspace.
+
+## Phase 4 — Testing
+
+Objectives:
+- Assertions.
+- Test Cases.
+- Test Suites.
+- Test Execution.
+- Test Reports.
+- JSON Schema Validation.
+
+Deliverable:
+A dedicated API testing environment.
+
+## Phase 5 — API Exploration
+
+Objectives:
+- OpenAPI Import.
+- Swagger Support.
+- Endpoint Discovery.
+- Request Generation.
+- Documentation Viewer.
+
+Deliverable:
+An API exploration workspace.
+
+## Phase 6 — Workflow Studio
+
+Objectives:
+- Workflow Graph.
+- Nodes.
+- Connections.
+- Variable Passing.
+- Conditions.
+- Execution Engine.
+- Workflow Reports.
+
+Deliverable:
+A visual API automation environment.
+
+## Phase 7 — Advanced Protocols
+
+Objectives:
+- GraphQL.
+- WebSocket.
+- SSE.
+- Protocol-specific inspectors.
+
+Deliverable:
+Expanded API protocol support.
+
+## Phase 8 — Mock & Performance
+
+Objectives:
+- Mock Server.
+- Request Matching.
+- Concurrent Execution.
+- Performance Reports.
+- Load Test Safety Controls.
+
+Deliverable:
+Advanced API development and validation tools.
+
+## Phase 9 — AI Integration
+
+Objectives:
+- Provider Interface.
+- Provider Settings.
+- AI Assistant.
+- Request Generation.
+- Test Generation.
+- Error Analysis.
+- Workflow Assistance.
+- Approval System.
+
+Deliverable:
+An AI-assisted API development environment.
+
+## Phase 10 — Ecosystem & Plugins
+
+Objectives:
+- Plugin SDK.
+- Plugin Permissions.
+- Kuro Hub Integration.
+- Extension Management.
+- Compatibility System.
+
+Deliverable:
+An extensible KuroRelay ecosystem.
+
+## Phase 11 — Release Preparation
+
+Objectives:
+- Windows Packaging.
+- Installer.
+- Runtime Dependency Validation.
+- Application Signing.
+- Upgrade Handling.
+- Database Migration Testing.
+- Crash Diagnostics.
+- Performance Testing.
+- Security Review.
+- User Documentation.
+
+Deliverable:
+A stable public release.
+
+---
+
+# PART 18 — TESTING & QUALITY ASSURANCE
+
+## 18.1 Unit Testing
+
+Frontend:
+- Component behavior.
+- State management.
+- Schema validation.
+- Formatting utilities.
+
+Python:
+- Request validation.
+- Variable resolution.
+- Authentication.
+- Response parsing.
+- Database repositories.
+- Assertions.
+- Workflow nodes.
+
+## 18.2 Integration Testing
+
+Test:
+- React to Bridge.
+- Bridge to Python Services.
+- Request Engine to HTTP Engine.
+- HTTP Engine to Test Server.
+- Database Persistence.
+- Environment Resolution.
+- Cancellation.
+- Error Propagation.
+
+## 18.3 End-to-End Testing
+
+Test scenarios:
+- First launch.
+- Create workspace.
+- Create request.
+- Send request.
+- Inspect response.
+- Save request.
+- Restart application.
+- Reopen request.
+- Run test suite.
+- Handle network failure.
+
+## 18.4 Security Testing
+
+Test:
+- Secret redaction.
+- TLS verification.
+- Redirect validation.
+- SSRF restrictions.
+- Script isolation.
+- Invalid bridge payloads.
+- File import validation.
+- Database consistency.
+- Plugin permissions.
+
+## 18.5 Regression Testing
+
+Every bug fix must include a test that reproduces the original problem.
+
+---
+
+# PART 19 — ERROR & RECOVERY DESIGN
+
+## 19.1 Network Failures
+
+Examples:
+- DNS resolution failure.
+- Connection refused.
+- Timeout.
+- TLS failure.
+- Connection reset.
+
+The application must distinguish transport errors from HTTP error responses.
+
+## 19.2 Application Failures
+
+Examples:
+- Bridge unavailable.
+- Database locked.
+- Invalid workspace data.
+- Unexpected Python exception.
+- Frontend runtime exception.
+
+The application must avoid data loss and show actionable recovery instructions.
+
+## 19.3 Recovery
+
+- Safe database transactions.
+- Startup validation.
+- Backup before risky migrations.
+- Clear diagnostics.
+- Crash-safe persistence.
+- User-controlled history cleanup.
+
+---
+
+# PART 20 — PACKAGING & RELEASE
+
+## 20.1 Desktop Packaging
+
+Recommended packaging approach:
+- PyInstaller for Python packaging.
+- PyWebView desktop runtime.
+- Built React assets bundled with the application.
+- Windows installer.
+
+The exact packaging approach must be validated with the selected PyWebView GUI backend.
+
+## 20.2 Installation Requirements
+
+The installer must:
+- Detect supported Windows versions.
+- Validate required runtime dependencies.
+- Handle WebView2 prerequisites where required.
+- Install application files.
+- Preserve user data during upgrades.
+- Support clean uninstall without unexpectedly deleting user projects.
+
+## 20.3 Release Channels
+
+Suggested release stages:
+
+- Internal Development Builds.
+- Alpha.
+- Private Beta.
+- Public Beta.
+- Stable Release.
+
+## 20.4 Release Checklist
+
+- Version number.
+- Release notes.
+- Clean installation test.
+- Upgrade test.
+- Uninstall test.
+- Database migration test.
+- Core workflow test.
+- Security review.
+- Performance review.
+- Known issues.
+- User documentation.
+
+---
+
+# PART 21 — DOCUMENTATION REQUIREMENTS
+
+The repository should maintain these documents:
+
+| File | Purpose |
+|---|---|
+| PRD.md | Product Requirements |
+| TDD.md | Technical Design |
+| ARCHITECTURE.md | System Architecture |
+| USER_WORKFLOW.md | User Journeys |
+| APP_WORKFLOW.md | Internal Application Processes |
+| DEV_WORKFLOW.md | Engineering Process |
+| SECURITY.md | Security Policies |
+| DATABASE.md | Data Models |
+| BRIDGE_CONTRACT.md | Frontend/Python Contracts |
+| TESTING.md | QA Strategy |
+| RELEASE.md | Packaging & Release |
+| CHANGELOG.md | Version History |
+
+Documentation must evolve alongside implementation.
+
+---
+
+# PART 22 — FUTURE CONSIDERATIONS
+
+The following ideas are not MVP commitments:
+
+- Team Collaboration.
+- Cloud Workspace Synchronization.
+- Shared Collections.
+- Remote Execution Agents.
+- Advanced API Monitoring.
+- Scheduled API Checks.
+- CI/CD Integrations.
+- CLI Companion.
+- Git Integration.
+- Advanced API Contract Diffing.
+- Plugin Marketplace.
+- Kuro Hub Distribution.
+- Advanced AI Agent Capabilities.
+
+Each must have a separate product and technical assessment before implementation.
+
+---
+
+# PART 23 — FIRST DEVELOPMENT MILESTONE
+
+The first implementation milestone must prove that the chosen architecture works.
+
+## Milestone 01: Desktop Bridge & HTTP Request
+
+### Frontend Tasks
+1. Create React/Vite application.
+2. Create basic desktop layout.
+3. Create URL input.
+4. Create HTTP method selector.
+5. Create Send button.
+6. Create response panel.
+7. Create bridge client.
+8. Create loading and error states.
+
+### Python Tasks
+1. Initialize PyWebView.
+2. Create application entry point.
+3. Create bridge API.
+4. Create request payload model.
+5. Create HTTPX client lifecycle.
+6. Implement GET request.
+7. Implement response normalization.
+8. Implement error handling.
+9. Add basic tests.
+
+### Integration Tasks
+1. Launch desktop application.
+2. Establish bridge.
+3. Submit GET request.
+4. Execute request in Python.
+5. Return response.
+6. Display response in React.
+7. Verify UI responsiveness.
+8. Verify network error behavior.
+
+### Completion Criteria
+
+A user can open KuroRelay, enter a URL, choose GET, press Send, receive the actual response, inspect it, and receive useful errors when execution fails.
+
+No advanced modules should be developed before this milestone is reliable.
+
+---
+
+# PART 24 — FINAL PRODUCT DEFINITION
+
+KuroRelay is a local-first desktop API Development & Testing Environment.
+
+It combines:
+
+- API Request Construction.
+- HTTP Execution.
+- Response Inspection.
+- Workspace & Collection Management.
+- Environment Variables.
+- API Testing.
+- Request Chaining.
+- Workflow Automation.
+- API Exploration.
+- Mock Servers.
+- Performance Testing.
+- AI-Assisted Development.
+- Extensible Plugin Architecture.
+
+Its core purpose is to make API development, testing, debugging, and automation part of one coherent developer experience.
+
+**KuroRelay is not simply where developers send requests. It is where they build, understand, test, and automate APIs.**
+
+---
+
+# FINAL ENGINEERING RULE
+
+Build the foundation before the advanced features.
+
+The application must first prove that:
+- The desktop runtime is stable.
+- The bridge is secure.
+- HTTP execution is reliable.
+- Data persistence works.
+- The UI remains responsive.
+- Errors are handled correctly.
+
+Only then should the team expand into testing, workflows, AI, mock servers, and plugins.
+
+**First reliable core. Then complete development environment. Then ecosystem.**
