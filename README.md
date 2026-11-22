@@ -1,14 +1,8 @@
 # KuroRelay
 
 <p align="center">
-  <img src="assets/icons/kurorelay_combined_horizontal.png" alt="KuroRelay Brand Logo" width="480" />
+  <img src="assets/icons/kurorelay_combined_horizontal.png" alt="KuroRelay Brand Logo" />
 </p>
-
-<p align="center">
-  <img src="assets/icons/logo.png" alt="KuroRelay App Icon" width="64" style="border-radius: 14px; vertical-align: middle; margin-right: 10px;" />
-  <img src="assets/icons/kurorelay_combined_vertical.png" alt="KuroRelay Vertical Logo" width="64" style="vertical-align: middle;" />
-</p>
-
 <p align="center">
   <strong>Next-Generation Desktop API Development, Testing & Workflow Engine</strong><br>
   Local-first • High Performance • Autonomous AI Copilot • Visual Workflow Studio
